@@ -16,7 +16,7 @@ Network Evaluation Tools is a Python package with corresponding examples for eva
   - _network_propagation_ - This module contains functions to help with network propagation steps used in the set-based network evaluation algorithm.
 
 ## Version and Dendencies
-Currently, the network_evaluation_tools package requires Python 2.7 - Python 2.7.13. Note that some functions in this package may not work with Python 3.0+.
+Currently, the network_evaluation_tools package has been deployed in a Python 3.6 environment. However, assuming the dependencies are updated accordingly, there is an expectation that this package will be backwards compatible with Python 2.7. Additional testing is still required for other functions not involved in the command line script deployment of the package.
 network_evaluation_tools requires: 
   - Argparse >= 1.1
   - NetworkX >= 2.3
