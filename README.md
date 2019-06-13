@@ -1,6 +1,12 @@
 # Network Evaluation Tools
 
-Network Evaluation Tools is a Python 2.7 package with corresponding examples for evaluating a network's ability to group a given node set in network proximity. This package was developed as a part of the work done in [Huang and Carlin et al. 2018](http://www.cell.com/cell-systems/fulltext/S2405-4712(18)30095-4). 
+Network Evaluation Tools is a Python package with corresponding examples for evaluating a network's ability to group a given node set in network proximity. This package was originally developed as a part of the work done in [Huang and Carlin et al. 2018](http://www.cell.com/cell-systems/fulltext/S2405-4712(18)30095-4). This version of the package is being updated as needed to be compatible with Python 3.6+. For the Python 2.7 compatible version of this package that was used in the aforementioned paper, please visit the [Ideker Lab GitHub](https://github.com/idekerlab/Network_Evaluation_Tools).
+
+## Updates to this package
+  - print statements fixed to be compatible with Python 3
+  - Most usages of ```.ix``` in the packages updated to be compatible with pandas 0.20.0+
+  - ```run_network_evaluation.py``` script in ```Network Evaluation Examples``` has been slightly updated
+  - Jupyter Notebooks have *NOT* been updated to reflect changes to the code base at this time
 
 ## Modules in this package
   - _data_import_tools_ - This module contains functions for helping import network files and gene set files for analysis.
@@ -13,16 +19,13 @@ Network Evaluation Tools is a Python 2.7 package with corresponding examples for
 Currently, the network_evaluation_tools package requires Python 2.7 - Python 2.7.13. Note that some functions in this package may not work with Python 3.0+.
 network_evaluation_tools requires: 
   - Argparse >= 1.1
-  - NetworkX >= 2.1
-  - Numpy >= 1.11.0
-  - Matplotlib >= 1.5.1
-  - Pandas >= 0.19.0
-  - Requests >= 2.13.0
-  - Scipy >= 0.17.0
-  - Scikit-learn >= 0.17.1
-
-Note:
-- In Pandas v0.20.0+, the ```.ix```indexer has been deprecated. There may be warning regarding this issue, yet the function still works.
+  - NetworkX >= 2.3
+  - Numpy >= 1.16.3
+  - Matplotlib >= 3.0.3
+  - Pandas >= 0.24.2
+  - Requests >= 2.21.0
+  - Scipy >= 1.2.1
+  - Scikit-learn >= 0.20.3
 
 ## Installation
 1. Clone the repository 
@@ -44,6 +47,8 @@ The following network analyses can be performed either from a Jupyter Notebook o
 
 ## Issues
 Please feel free to post issues/bug reports. Questions can be sent to jkh013@ucsd.edu
+
+- In Pandas v0.20.0+, the ```.ix``` indexer has been deprecated. Usages of ```.ix``` in the package are being updated as needed. The package should still function normally despite the warnings currently.
 
 ## License
 See the [LICENSE](https://github.com/huangger/Network_Evaluation_Tools/blob/master/LICENSE.txt) file for license rights and limitations (MIT).

@@ -70,6 +70,10 @@ if __name__ == "__main__":
 		help='Number of cores to be utilized by machine for performance calculation step. NOTE: Each core must have enough memory to store at least network-sized square matrix and given node sets to perform calculations.')	
 	parser.add_argument('-bg', '--background', type=str, default='network', choices=['genesets', 'network'], required=False,
 		help='Establishes the background gene set to calculate AUPRC over. Default is to use all genes in the network, can change to use only genes from the union of all gene sets tested (i.e. disease genes only).')	
+	parser.add_argument('-ns', '--min_size', type=positive_int, default=20, required=False,
+		help='Sets the minimum number of nodes in each gene set that must be found in the network to be evaluated. All node sets below this size are eliminated.')	
+	parser.add_argument('-xs', '--max_size', type=positive_int, default=500, required=False,
+		help='Sets the maximum number of nodes in each gene set that are be found in the network to be evaluated. All node sets above this size are eliminated.')	
 
 	# Network performance score calculations (with null networks)
 	parser.add_argument("-i", "--null_iter", type=positive_int, default=30, required=False,
@@ -80,8 +84,6 @@ if __name__ == "__main__":
 		help='CSV file path of where to save null network evaluation results. Used in the calculation of network performance score and perfomance gain scores')
 	parser.add_argument('-psp', '--performance_save_path', type=valid_outfile, default=None, required=False,
 		help='CSV file path of where to save network evaluation results as z-scores.')
-	parser.add_argument('-gsp', '--performance_gain_save_path', type=valid_outfile, default=None, required=False,
-		help='CSV file path of where to save network evaluation results as gain in AUPRC over median null AUPRCs.')
 
 	args = parser.parse_args()
 	# If null networks need to be constructed
@@ -103,15 +105,7 @@ if __name__ == "__main__":
 	network_size = len(network.nodes())
 
 	# Load Gene sets
-	genesets = dit.load_node_sets(args.node_sets_file, verbose=args.verbose)
-
-	# Calculate gene set sub-sample rate with network (if not set)
-	if args.sample_p is None:
-		genesets_p = nef.calculate_p(network, genesets)
-	else:
-		genesets_p = {geneset:args.sample_p for geneset in genesets}
-	if args.verbose:
-		print 'Gene set sub-sample rates set'
+	genesets_raw = dit.load_node_sets(args.node_sets_file, verbose=args.verbose)
 
 	# Calculate network kernel (also determine propagation constant if not set)
 	kernel = nef.construct_prop_kernel(network, alpha=args.alpha, verbose=True)
@@ -125,6 +119,20 @@ if __name__ == "__main__":
 	else:
 		background_nodes = list(kernel.index)
 
+	# Filter gene sets
+	print('Total node sets loaded:', len(genesets_raw))
+	genesets = {gs:genesets_raw[gs].intersection(set(kernel.index)) for gs in genesets_raw 
+	            if (len(genesets_raw[gs].intersection(set(kernel.index))) >= args.min_size) &
+	               (len(genesets_raw[gs].intersection(set(kernel.index))) <= args.max_size)}
+	print('Filtered node sets remaining:', len(genesets))
+
+	# Calculate gene set sub-sample rate with network (if not set)
+	if args.sample_p is None:
+		genesets_p = nef.calculate_p(network, genesets)
+	else:
+		genesets_p = {geneset:args.sample_p for geneset in genesets}
+	if args.verbose:
+		print('Gene set sub-sample rates set')
 
 	############################################
 	##### Network Performance Calculations #####
@@ -132,13 +140,14 @@ if __name__ == "__main__":
 
 	# Calculate AUPRC for each gene set on actual network (large networks are >=10k nodes)
 	if network_size < 10000:
-		actual_AUPRC_values = nef.small_network_AUPRC_wrapper(kernel, genesets, genesets_p, n=args.sub_sample_iter, cores=args.cores, bg=background_nodes, verbose=True)
+		actual_AUPRC_values = nef.small_network_AUPRC_wrapper(kernel, genesets, genesets_p, n=args.sub_sample_iter, cores=args.cores, bg=background_nodes, verbose=False)
 	else:
-		actual_AUPRC_values = nef.large_network_AUPRC_wrapper(kernel, genesets, genesets_p, n=args.sub_sample_iter, cores=args.cores, bg=background_nodes, verbose=True)
+		actual_AUPRC_values = nef.large_network_AUPRC_wrapper(kernel, genesets, genesets_p, n=args.sub_sample_iter, cores=args.cores, bg=background_nodes, verbose=False)
 
 	# Save the actual network's AUPRC values
-	actual_AUPRC_values.to_csv(args.actual_AUPRCs_save_path)
-
+	if args.verbose:
+		print('Actual null network gene set AUPRCs calculated')
+	actual_AUPRC_values.to_csv(args.actual_AUPRCs_save_path, header=False)
 
 	#################################################
 	##### Null Network Performance Calculations #####
@@ -161,23 +170,26 @@ if __name__ == "__main__":
 			shuffNet_kernel = nef.construct_prop_kernel(shuffNet, alpha=args.alpha, verbose=False)
 			# Calculate null network AUPRCs
 			if network_size < 10000:
-				shuffNet_AUPRCs = nef.small_network_AUPRC_wrapper(shuffNet_kernel, genesets, genesets_p, n=args.sub_sample_iter, cores=args.cores, bg=background_nodes, verbose=True)
+				shuffNet_AUPRCs = nef.small_network_AUPRC_wrapper(shuffNet_kernel, genesets, genesets_p, n=args.sub_sample_iter, cores=args.cores, bg=background_nodes, verbose=False)
 			else:
-				shuffNet_AUPRCs = nef.large_network_AUPRC_wrapper(shuffNet_kernel, genesets, genesets_p, n=args.sub_sample_iter, cores=args.cores, bg=background_nodes, verbose=True)
+				shuffNet_AUPRCs = nef.large_network_AUPRC_wrapper(shuffNet_kernel, genesets, genesets_p, n=args.sub_sample_iter, cores=args.cores, bg=background_nodes, verbose=False)
 			null_AUPRCs.append(shuffNet_AUPRCs)
 		# Construct table of null AUPRCs
 		null_AUPRCs_table = pd.concat(null_AUPRCs, axis=1)
 		null_AUPRCs_table.columns = ['shuffNet'+repr(i+1) for i in range(len(null_AUPRCs))]
 		if args.verbose:
-			print 'All null network gene set AUPRCs calculated'
+			print('All null network gene set AUPRCs calculated')
 		# Save null network AUPRCs if save path is given
 		if args.null_AUPRCs_save_path is not None:
 			null_AUPRCs_table.to_csv(args.null_AUPRCs_save_path)
-		# Calculate performance score for each gene set's AUPRC if performance score save path is given
+		# Calculate performance score/gain for each gene set's AUPRC if performance save path is given
 		if args.performance_save_path is not None:
+			network_gs_overlap = pd.Series({gs:len(genesets[gs]) for gs in genesets}, name='Genes in Network')
 			network_performance = nef.calculate_network_performance_score(actual_AUPRC_values, null_AUPRCs_table, verbose=args.verbose)			
-			network_performance.to_csv(args.performance_save_path)
-		# Calculate network performance gain over median null AUPRC if AUPRC performance gain save path is given
-		if args.performance_gain_save_path is not None:
-			network_perf_gain = nef.calculate_network_performance_gain(actual_AUPRC_values, null_AUPRCs_table, verbose=args.verbose)			
-			network_perf_gain.to_csv(args.performance_save_path)
+			network_perf_gain = nef.calculate_network_performance_gain(actual_AUPRC_values, null_AUPRCs_table, verbose=args.verbose)
+
+			network_performance_table = pd.concat([network_gs_overlap, network_performance.rename('Performance Score'),
+				                                   network_perf_gain.rename('Performance Gain')], axis=1, sort=False)
+			network_performance_table.to_csv(args.performance_save_path)
+		if args.verbose:
+			print('Network performance score table saved')

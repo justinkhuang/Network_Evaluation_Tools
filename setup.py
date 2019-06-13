@@ -26,11 +26,11 @@ setup(
 	install_requires=[
         'argparse>=1.1',
         'networkx>=2.1',
-        'numpy>=1.11.0',
-        'matplotlib>=1.5.1',
-        'pandas>=0.19.0',
-        'requests>=2.13.0',
-        'scipy>=0.17.0',
-        'scikit-learn>=0.17.1',
+        'numpy>=1.16.3',
+        'matplotlib>=3.0.3',
+        'pandas>=0.24.2',
+        'requests>=2.21.0',
+        'scipy>=1.2.1',
+        'scikit-learn>=0.20.3',
         'seaborn>=0.7.1']
 )

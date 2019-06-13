@@ -22,21 +22,21 @@ def calculate_confusion_matrix_serial(prop_geno, p, n, node_set_name, node_set, 
 		sample = random.sample(intersect, sample_size)														 	# get node set sample
 		intersect_non_sample = [node for node in intersect if node not in sample]							   	# nodes in intersect not in sample
 		prop_geno_non_sample = list(prop_geno.index[~prop_geno.index.isin(sample)])							 	# nodes in network not in sample
-		prop_geno_sample_sum = prop_geno.ix[sample][prop_geno_non_sample].sum().sort_values(ascending=False)	# summed prop value for all nodes
+		prop_geno_sample_sum = prop_geno.loc[sample][prop_geno_non_sample].sum().sort_values(ascending=False)	# summed prop value for all nodes
 		y_actual = pd.Series(0, index=prop_geno_sample_sum.index, dtype=int)									# nodes sorted by mean prop value
-		y_actual.ix[intersect_non_sample]+=1																	# which nodes in sorted list are in intersect_non_sample
+		y_actual.loc[intersect_non_sample]+=1																	# which nodes in sorted list are in intersect_non_sample
 		intersect_non_sample_sorted = y_actual[y_actual==1].index											   	# intersect_non_sample sorted
 		confusion_matrix = {'TP':[], 'FN':[], 'FP':[], 'TN':[]}													# initialize true positive, false negative, false positive, true negative lists
 		for node in intersect_non_sample_sorted:															# Slide down sorted nodes by summed prop value by nodes that are in intersect_non_sample
-			TP, FN = sum(y_actual.ix[:node]), sum(y_actual.ix[node:])-1										   	# Calculate true positives and false negatives found at this point in list
-			FP, TN = len(y_actual.ix[:node])-TP, len(y_actual.ix[node:])-1-FN									# Calculate false positives and true negatives found at this point in list
+			TP, FN = sum(y_actual.loc[:node]), sum(y_actual.loc[node:])-1										   	# Calculate true positives and false negatives found at this point in list
+			FP, TN = len(y_actual.loc[:node])-TP, len(y_actual.loc[node:])-1-FN									# Calculate false positives and true negatives found at this point in list
 			confusion_matrix['TP'].append(TP)
 			confusion_matrix['FN'].append(FN)
 			confusion_matrix['FP'].append(FP)
 			confusion_matrix['TN'].append(TN)
 		confusion_matrices[i]=confusion_matrix
 	if verbose:
-		print 'Confusion matrices calculated for node set', node_set_name, 'complete.', repr(len(intersect))+' nodes in network,', round(time.time()-runtime, 2), 'seconds.'
+		print('Confusion matrices calculated for node set', node_set_name, 'complete.', repr(len(intersect))+' nodes in network,', round(time.time()-runtime, 2), 'seconds.')
 	return confusion_matrices
 
 # Calculate confusion matrix (true positive, false negatives, false positives, true negatives) of node set recovery for given node set 
@@ -52,21 +52,21 @@ def calculate_confusion_matrix_parallel(node_set_params):
 		sample = random.sample(intersect, sample_size)														 	# get node set sample
 		intersect_non_sample = [node for node in intersect if node not in sample]							   	# nodes in intersect not in sample
 		prop_geno_non_sample = list(prop_geno.index[~prop_geno.index.isin(sample)])							 	# nodes in network not in sample
-		prop_geno_sample_sum = prop_geno.ix[sample][prop_geno_non_sample].sum().sort_values(ascending=False)	# summed prop value for all nodes
+		prop_geno_sample_sum = prop_geno.loc[sample][prop_geno_non_sample].sum().sort_values(ascending=False)	# summed prop value for all nodes
 		y_actual = pd.Series(0, index=prop_geno_sample_sum.index, dtype=int)									# nodes sorted by mean prop value
-		y_actual.ix[intersect_non_sample]+=1																	# which nodes in sorted list are in intersect_non_sample
+		y_actual.loc[intersect_non_sample]+=1																	# which nodes in sorted list are in intersect_non_sample
 		intersect_non_sample_sorted = y_actual[y_actual==1].index											   	# intersect_non_sample sorted
 		confusion_matrix = {'TP':[], 'FN':[], 'FP':[], 'TN':[]}													# initialize true positive, false negative, false positive, true negative lists
 		for node in intersect_non_sample_sorted:															# Slide down sorted nodes by summed prop value by nodes that are in intersect_non_sample
-			TP, FN = sum(y_actual.ix[:node]), sum(y_actual.ix[node:])-1										   	# Calculate true positives and false negatives found at this point in list
-			FP, TN = len(y_actual.ix[:node])-TP, len(y_actual.ix[node:])-1-FN									# Calculate false positives and true negatives found at this point in list
+			TP, FN = sum(y_actual.loc[:node]), sum(y_actual.loc[node:])-1										   	# Calculate true positives and false negatives found at this point in list
+			FP, TN = len(y_actual.loc[:node])-TP, len(y_actual.loc[node:])-1-FN									# Calculate false positives and true negatives found at this point in list
 			confusion_matrix['TP'].append(TP)
 			confusion_matrix['FN'].append(FN)
 			confusion_matrix['FP'].append(FP)
 			confusion_matrix['TN'].append(TN)
 		confusion_matrices[i]=confusion_matrix
 	if verbose:
-		print 'Confusion matrices calculated for node set', node_set_name, 'complete.', repr(len(intersect))+' nodes in network,', round(time.time()-runtime, 2), 'seconds.'
+		print('Confusion matrices calculated for node set', node_set_name, 'complete.', repr(len(intersect))+' nodes in network,', round(time.time()-runtime, 2), 'seconds.')
 	return [node_set_name, confusion_matrices]
 
 # Wapper for calculating the confusion matrices for input node set file and network (has parallel option)
@@ -96,12 +96,12 @@ def confusion_matrix_construction_wrapper(network_file, node_set_file, sample_p,
 		node_set_conf_mat = {result[0]:result[1] for result in conf_mat_results}
 	if save_path is None:
 		if verbose:
-			print 'Network confusion matrix values calcualted:', round(time.time()-starttime, 2), 'seconds'			
+			print('Network confusion matrix values calcualted:', round(time.time()-starttime, 2), 'seconds'	)		
 		return node_set_conf_mat
 	else:
 		p.dump(node_set_conf_mat, open(save_path, 'wb'))
 		if verbose:
-			print 'Network confusion matrix values calcualted:', round(time.time()-starttime, 2), 'seconds'					
+			print('Network confusion matrix values calcualted:', round(time.time()-starttime, 2), 'seconds'	)				
 		return node_set_conf_mat
 
 # Use confusion matrix results to calculate odds ratio, risk ratio, accuracy or precision at a given recall threshold
@@ -117,7 +117,7 @@ def confusion_matrix_analysis(confusion_matrix_input, calculation, recall_thresh
 	cohort_calculated_values_mean, cohort_calculated_values_var = {}, {}
 	# For each cohort tested
 	for cohort in confusion_matrix:
-		print cohort
+		print(cohort)
 		n = len(confusion_matrix[cohort])
 		calculation_values = []
 		# For all sub-sample iterations
@@ -147,12 +147,12 @@ def confusion_matrix_analysis(confusion_matrix_input, calculation, recall_thresh
 												pd.Series(cohort_calculated_values_var, name=calculation+' Var')], axis=1)
 	if save_path is None:
 		if verbose:
-			print calculation, 'calculation completed for all cohorts', round(time.time()-runtime, 2), 'seconds.'
+			print(calculation, 'calculation completed for all cohorts', round(time.time()-runtime, 2), 'seconds.')
 		return cohort_calculated_values_table
 	else:
 		cohort_calculated_values_table.to_csv(save_path)
 		if verbose:
-			print calculation, 'calculation completed for all cohorts', round(time.time()-runtime, 2), 'seconds.'		
+			print(calculation, 'calculation completed for all cohorts', round(time.time()-runtime, 2), 'seconds.')	
 		return cohort_calculated_values_table
 
 
