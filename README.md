@@ -3,7 +3,7 @@
 Network Evaluation Tools is a Python package with corresponding examples for evaluating a network's ability to group a given node set in network proximity. This package was originally developed as a part of the work done in [Huang and Carlin et al. 2018](http://www.cell.com/cell-systems/fulltext/S2405-4712(18)30095-4). This version of the package is being updated as needed to be compatible with Python 3.6+. For the Python 2.7 compatible version of this package that was used in the aforementioned paper, please visit the [Ideker Lab GitHub](https://github.com/idekerlab/Network_Evaluation_Tools).
 
 ## Updates to this package
-  - print statements fixed to be compatible with Python 3
+  - ```print``` statements fixed to be compatible with Python 3
   - Most usages of ```.ix``` in the packages updated to be compatible with pandas 0.20.0+
   - ```run_network_evaluation.py``` script in ```Network Evaluation Examples``` has been slightly updated
   - Jupyter Notebooks have *NOT* been updated to reflect changes to the code base at this time
